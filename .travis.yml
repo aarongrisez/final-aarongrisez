@@ -1,0 +1,10 @@
+language: python
+python:
+  - "3.5"
+# command to install dependencies
+install: "pip install pylint sympy matplotlib pandas"
+# command to run tests
+script:
+  - "if [ -f *.py ]; then nosetests *.py; fi"
+notifications:
+  email: false
