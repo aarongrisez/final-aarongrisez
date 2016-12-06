@@ -11,7 +11,7 @@
 1. You have one week to complete your final. Work alone.
 1. Read ```final-rubric.pdf``` and follow the instructions.
 
-## Midterm Description
+## Final Description
 
 **CHANGEME**
 
