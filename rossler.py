@@ -37,21 +37,26 @@ def rossler(c, T=500.0, dt=0.001):
     soln = np.transpose(soln_p)
     df = pd.DataFrame({"t":t_vals, "x":soln[0], "y":soln[1], "z":soln[2]})
     indexed_df = df.set_index(t_vals)
-    c_string = str(c)
-    c_string = c_string.replace('.','_') #Removes periods for filenames
-    indexed_df.to_csv('c_equals_' + c_string)
+#    c_string = str(c)
+#    c_string = c_string.replace('.','_') #Removes periods for filenames
+#    indexed_df.to_csv('c_equals_' + c_string)
     return indexed_df
+
+@nb.jit
+def du(m, c):
+    a = 0.2
+    b = 0.2
+    return np.array((-m[1] - m[2], m[0] + a * m[1], b + m[2] * (m[0] - c)))     #First component is x, second component is y, third component is z
 
 def integrate(u, delta_t, n, c):
     a = 0.2
     b = 0.2
-    du = lambda m: np.array((-m[1] - m[2], m[0] + a * m[1], b + m[2] * (m[0] - c)))     #First component is x, second component is y, third component is z
     @nb.jit
     def rk4_step(u_prev, delta_t, t_current):
-        K1 = delta_t * du(u_prev)
-        K2 = delta_t * du(u_prev + K1 / 2)
-        K3 = delta_t * du(u_prev + K2 / 2)
-        K4 = delta_t * du(u_prev + K3)# 4 intermediate approximations
+        K1 = delta_t * du(u_prev, c)
+        K2 = delta_t * du(u_prev + K1 / 2, c)
+        K3 = delta_t * du(u_prev + K2 / 2, c)
+        K4 = delta_t * du(u_prev + K3, c)# 4 intermediate approximations
         return u_prev + (K1 + 2 * K2 + 2 * K3 + K4) / 6
     @nb.jit
     def for_loop(u, delta_t, n):
@@ -60,15 +65,6 @@ def integrate(u, delta_t, n, c):
             u[i] = rk4_step(u[i - 1], delta_t, t_current)
         return u
     return for_loop(u, delta_t, n)
-
-@nb.jit(nopython=True)
-def rk4_step(u_prev, delta_t, t_current):
-    du = lambda m: np.array((-m[1] - m[2], m[0] + a * m[1], b + m[2] * (m[0] - c)))     #First component is x, second component is y, third component is z
-    K1 = delta_t * du(u_prev)
-    K2 = delta_t * du(u_prev + K1 / 2)
-    K3 = delta_t * du(u_prev + K2 / 2)
-    K4 = delta_t * du(u_prev + K3)# 4 intermediate approximations
-    return u_prev + (K1 + 2 * K2 + 2 * K3 + K4) / 6
 
 def plotxyz_separate(sol):
     plots = plt.figure(1, figsize=(12,4))
