@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import numba as nb
+from mpl_toolkits.mplot3d import Axes3D
 
 """
 Module to investigate behavior of Rossler oscillator
@@ -104,12 +105,38 @@ def plot_2D_phase(sol, T0=100):
     plots = plt.figure(2, figsize=(12,5))
     plxy = plots.add_subplot(1,3,1)
     plotxy(sol_slice, T0, plxy)
+    plyz = plots.add_subplot(1,3,2)
+    plotyz(sol_slice, T0, plyz)
+    plxz = plots.add_subplot(1,3,3)
+    plotxz(sol_slice, T0, plxz)
 
 def plotxy(sol, T0, fig):
     fig.set_title("$xy$ Parametric Plot")
     fig.set_xlabel("$x$ Position ($m$)")
     fig.set_ylabel("$y$ Position ($m$)")
-    fig.plot((sol['x'], sol['y']))
+    fig.scatter(sol['x'], sol['y'], s=.001, marker='.')
+
+def plotyz(sol, T0, fig):
+    fig.set_title("$yz$ Parametric Plot")
+    fig.set_xlabel("$y$ Position ($m$)")
+    fig.set_ylabel("$z$ Position ($m$)")
+    fig.scatter(sol['y'], sol['z'], s=.001, marker='.')
+
+def plotxz(sol, T0, fig):
+    fig.set_title("$xz$ Parametric Plot")
+    fig.set_xlabel("$x$ Position ($m$)")
+    fig.set_ylabel("$z$ Position ($m$)")
+    fig.scatter(sol['x'], sol['z'], s=.001, marker='.')
+
+def plotxyz(sol, T0):
+    sol_slice = sol[sol['t'] >= T0]
+    plot = plt.figure(3, figsize=(12,7),)
+    xyz = plot.add_subplot(111, projection='3d')
+    xyz.set_xlabel("$x$ Position")
+    xyz.set_ylabel("$y$ Position")
+    xyz.set_zlabel("$z$ Position")
+    xyz.set_title("$xyz$ Parametric Plot")
+    xyz.scatter(sol_slice['x'], sol_slice['y'], sol_slice['z'], s=.001, marker='.')
 
 def test_rossler():
     print(rossler(1, T=5)['x'])
