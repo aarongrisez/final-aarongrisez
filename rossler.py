@@ -10,6 +10,7 @@ from mpl_toolkits.mplot3d import Axes3D
 Module to investigate behavior of Rossler oscillator
 """
 
+@nb.jit
 def rossler(c, T=500.0, dt=0.001):
     """
     Parameters:
@@ -44,11 +45,44 @@ def rossler(c, T=500.0, dt=0.001):
 
 @nb.jit
 def du(m, c):
+    """
+    Vector Differential Equation for Rossler Attractor
+
+    Parameters:
+    -----------
+        m: array
+            previous mesh point solution
+        c: float
+            current c value
+
+    Returns:
+        array
+            array representing differential equations evaluated at previous mesh point 
+    """
     a = 0.2
     b = 0.2
     return np.array((-m[1] - m[2], m[0] + a * m[1], b + m[2] * (m[0] - c)))     #First component is x, second component is y, third component is z
 
 def integrate(u, delta_t, n, c):
+    """
+    Implements rk4 step to solve Rossler Attractor problem
+
+    Parameters:
+    -----------
+        u: array
+            initialized solutions array
+        delta_t: float
+            time step to use in solution mesh
+        n: int
+            number of mesh points
+        c: float
+            current c value
+
+    Returns:
+    --------
+        array (n, 3)
+            solution meshes for all 3 dimensions of Rossler Attractor
+    """
     a = 0.2
     b = 0.2
     @nb.jit
@@ -67,6 +101,18 @@ def integrate(u, delta_t, n, c):
     return for_loop(u, delta_t, n)
 
 def plotxyz_separate(sol):
+    """
+    Plots 3 parametric plots for x, y, and z
+
+    Parameters:
+    -----------
+        sol: pd.Dataframe
+            solution meshes computed earlier
+
+    Returns:
+    --------
+        none
+    """
     plots = plt.figure(1, figsize=(12,4))
     plx = plots.add_subplot(1,3,1)
     plotx(sol, plx)
@@ -76,6 +122,20 @@ def plotxyz_separate(sol):
     plotz(sol, plz)
 
 def plotx(sol, plotx):
+    """
+    Plots single solution plot
+
+    Parameters:
+    -----------
+        sol: pd.Dataframe
+            solution mesh computed earlier
+        plotx: matplotlib.pyplot.subplot
+            subplot to use in plotxyz_separate()
+
+    Returns:
+    --------
+        none
+    """
     plotx.set_title("$X$ versus $t$ Plot")
     plotx.set_xlabel("time ($s$)")
     plotx.set_ylabel("position ($m$)")
@@ -83,6 +143,20 @@ def plotx(sol, plotx):
     plotx.plot(sol['t'], sol['x'], 'k-', lw=0.5)
 
 def ploty(sol, ploty):
+    """
+    Plots single solution plot
+
+    Parameters:
+    -----------
+        sol: pd.Dataframe
+            solution mesh computed earlier
+        ploty: matplotlib.pyplot.subplot
+            subplot to use in plotxyz_separate()
+
+    Returns:
+    --------
+        none
+    """
     ploty.set_title("$Y$ versus $t$ Plot")
     ploty.set_xlabel("time ($s$)")
     ploty.set_ylabel("position ($m$)")
@@ -90,6 +164,20 @@ def ploty(sol, ploty):
     ploty.plot(sol['t'], sol['y'], 'k-', lw=0.5)
 
 def plotz(sol, plotz):
+    """
+    Plots single solution plot
+
+    Parameters:
+    -----------
+        sol: pd.Dataframe
+            solution mesh computed earlier
+        plotz: matplotlib.pyplot.subplot
+            subplot to use in plotxyz_separate()
+
+    Returns:
+    --------
+        none
+    """
     plotz.set_title("$Z$ versus $t$ Plot")
     plotz.set_xlabel("time ($s$)")
     plotz.set_ylabel("position ($m$)")
@@ -97,6 +185,20 @@ def plotz(sol, plotz):
     plotz.plot(sol['t'], sol['z'], 'k-', lw=0.5)
 
 def plot_2D_phase(sol, T0=100):
+    """
+    Plots 2D parametric plot
+
+    Parameters:
+    -----------
+        sol: pd.Dataframe
+            solution mesh computed earlier
+        T0: int
+            time index for transient points, this plot will ignore points with a lower time index
+
+    Returns:
+    --------
+        none
+    """
     sol_slice = sol[sol['t'] >= T0]
     plots = plt.figure(2, figsize=(12,5))
     plxy = plots.add_subplot(1,3,1)
@@ -124,7 +226,21 @@ def plotxz(sol, T0, fig):
     fig.set_ylabel("$z$ Position ($m$)")
     fig.scatter(sol['x'], sol['z'], s=.001, marker='.')
 
-def plotxyz(sol, T0):
+def plotxyz(sol, T0=100):
+    """
+    Plots 3D parametric plots of x, y, and z
+
+    Parameters:
+    -----------
+        sol: pd.Dataframe
+            solution mesh computed earlier
+        T0: int
+            time index for transient points, this plot will ignore points with a lower time index
+
+    Returns:
+    --------
+        none
+    """
     sol_slice = sol[sol['t'] >= T0]
     plot = plt.figure(3, figsize=(12,7),)
     xyz = plot.add_subplot(111, projection='3d')
@@ -135,5 +251,6 @@ def plotxyz(sol, T0):
     xyz.scatter(sol_slice['x'], sol_slice['y'], sol_slice['z'], s=.001, marker='.')
 
 def test_rossler():
-    print(rossler(1, T=5)['x'])
-    assert False
+    test = type(rossler(1))
+    case = type(pd.DataFrame([1,3,1]))
+    assert test == case
