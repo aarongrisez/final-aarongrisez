@@ -113,7 +113,8 @@ def plotxyz_separate(sol):
     --------
         none
     """
-    plots = plt.figure(1, figsize=(12,4))
+    plots = plt.figure(1, figsize=(11.2,4))
+    plots.subplots_adjust(wspace=.4)
     plx = plots.add_subplot(1,3,1)
     plotx(sol, plx)
     ply = plots.add_subplot(1,3,2)
@@ -122,69 +123,27 @@ def plotxyz_separate(sol):
     plotz(sol, plz)
 
 def plotx(sol, plotx):
-    """
-    Plots single solution plot
-
-    Parameters:
-    -----------
-        sol: pd.Dataframe
-            solution mesh computed earlier
-        plotx: matplotlib.pyplot.subplot
-            subplot to use in plotxyz_separate()
-
-    Returns:
-    --------
-        none
-    """
     plotx.set_title("$X$ versus $t$ Plot")
     plotx.set_xlabel("time ($s$)")
-    plotx.set_ylabel("position ($m$)")
+    plotx.set_ylabel("$x$ position ($m$)")
     plotx.set_ylim((-12,12))
     plotx.plot(sol['t'], sol['x'], 'k-', lw=0.5)
 
 def ploty(sol, ploty):
-    """
-    Plots single solution plot
-
-    Parameters:
-    -----------
-        sol: pd.Dataframe
-            solution mesh computed earlier
-        ploty: matplotlib.pyplot.subplot
-            subplot to use in plotxyz_separate()
-
-    Returns:
-    --------
-        none
-    """
     ploty.set_title("$Y$ versus $t$ Plot")
     ploty.set_xlabel("time ($s$)")
-    ploty.set_ylabel("position ($m$)")
+    ploty.set_ylabel("$y$ position ($m$)")
     ploty.set_ylim((-12,12))
     ploty.plot(sol['t'], sol['y'], 'k-', lw=0.5)
 
 def plotz(sol, plotz):
-    """
-    Plots single solution plot
-
-    Parameters:
-    -----------
-        sol: pd.Dataframe
-            solution mesh computed earlier
-        plotz: matplotlib.pyplot.subplot
-            subplot to use in plotxyz_separate()
-
-    Returns:
-    --------
-        none
-    """
     plotz.set_title("$Z$ versus $t$ Plot")
     plotz.set_xlabel("time ($s$)")
-    plotz.set_ylabel("position ($m$)")
+    plotz.set_ylabel("$z$ position ($m$)")
     plotz.set_ylim((0,25))
     plotz.plot(sol['t'], sol['z'], 'k-', lw=0.5)
 
-def plot_2D_phase(sol, T0=100):
+def plot_2D_parametric(sol, T0=100):
     """
     Plots 2D parametric plot
 
@@ -200,7 +159,8 @@ def plot_2D_phase(sol, T0=100):
         none
     """
     sol_slice = sol[sol['t'] >= T0]
-    plots = plt.figure(2, figsize=(12,5))
+    plots = plt.figure(2, figsize=(10,3.6))
+    plots.subplots_adjust(wspace=.4)
     plxy = plots.add_subplot(1,3,1)
     plotxy(sol_slice, T0, plxy)
     plyz = plots.add_subplot(1,3,2)
@@ -226,7 +186,7 @@ def plotxz(sol, T0, fig):
     fig.set_ylabel("$z$ Position ($m$)")
     fig.scatter(sol['x'], sol['z'], s=.001, marker='.')
 
-def plotxyz(sol, T0=100):
+def plotxyz(sol, T0):
     """
     Plots 3D parametric plots of x, y, and z
 
@@ -250,7 +210,106 @@ def plotxyz(sol, T0=100):
     xyz.set_title("$xyz$ Parametric Plot")
     xyz.scatter(sol_slice['x'], sol_slice['y'], sol_slice['z'], s=.001, marker='.')
 
+@nb.jit
+def find_maxima(x, df, N=100):
+    """
+    Finds relative maxima after a transient number of points
+
+    Parameters:
+    -----------
+        x: string
+            axis to use for finding maxima
+        df: pd.Dataframe
+            solution meshes
+        N: int
+            time index for transient points to ignore
+
+    Returns:
+    --------
+        np.array
+            array of values containing the relative maxima REMOVED from the time mesh. Only the maximum values are retained, not their index
+    """
+    df_slice = df[df['t'] >= N * .001]
+    x_slice = np.array(df_slice[str(x)])
+    maxima_bool = np.zeros(x_slice.size)
+    for i in range(1, x_slice.size - 1):
+        plus = x_slice[i + 1]
+        minus = x_slice[i - 1]
+        if x_slice[i] > plus and x_slice[i] > minus:
+            maxima_bool[i] += 1
+    maxima_loc = np.array(np.where(maxima_bool != 0))
+    maxima = np.zeros(maxima_loc[0].size)
+    j = 0
+    for i in maxima_loc[0]:
+        maxima[j] = x_slice[i]
+        j += 1
+    return maxima
+
+@nb.jit
+def plot_many_c(n, c0, cf):
+    """
+    Creates bifurcation plot using c_rossler()
+
+    Parameters:
+    -----------
+        n: int
+            number of points in c mesh
+        c0: float
+            first c value
+        cf: float
+            final c value
+
+    Returns:
+    --------
+        none
+    """
+    delta_c = (cf - c0) / n
+    plt.figure(1, figsize=(12,8))
+    plt.xlabel('$c$')
+    plt.xlim((2,6))
+    plt.ylabel('$x$ Positions ($m$)')
+    plt.ylim((3,12))
+    plt.title('$x$ Relative Maxima for varying $c$')
+    for i in range(n):
+        c_rossler(c0, cf, delta_c, i)
+    plt.show()
+
+@nb.jit
+def c_rossler(c0, delta_c, i):
+    """
+    Plots asymptotic tails for relative maxima of the x orbit. To change axis, change call to find_maxima()
+
+    Parameters:
+    -----------
+        c0: float
+            starting c value
+        delta_c: float
+            c mesh size
+        i: int
+            iteration from for loop in plot_many_c
+
+    Returns:
+    --------
+        none
+    """
+    c_current = c0 + i * delta_c
+    sol = r.rossler(c_current, dt=0.02, T=300)
+    mx = r.find_maxima('x', sol, N=150)
+    cs = np.zeros(mx.size) + c_current
+    plt.scatter(cs, mx, marker='.', s=0.1)
+
+def test_find_maxima():
+    t = np.array([0, 1, 2, 3, 4, 5, 6])
+    x = np.array([2, 10, 200, 40, 0, 12, 11])
+    df = pd.DataFrame({"t":t, "x":x})
+    test = find_maxima('x', df)
+    case = np.array([200., 12.])
+    print(test)
+    assert all(test == case)
+
 def test_rossler():
     test = type(rossler(1))
     case = type(pd.DataFrame([1,3,1]))
     assert test == case
+
+
