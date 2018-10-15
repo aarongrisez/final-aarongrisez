@@ -2,7 +2,7 @@
 
 **Author(s):** Aaron Grisez
 
-[![Build Status](https://travis-ci.com/chapman-phys220-2016f/final-aarongrisez.svg?token=NKnMzaV57yuvZyF9zLxy&branch=master)](https://travis-ci.com/chapman-phys220-2016f/final-aarongrisez)
+[![Build Status](https://travis-ci.org/aarongrisez/final-aarongrisez.svg?branch=master)](https://travis-ci.org/aarongrisez/final-aarongrisez)
 
 **Due date:** 2016/12/13
 
