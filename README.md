@@ -2,8 +2,6 @@
 
 **Author(s):** Aaron Grisez
 
-[![Build Status](https://travis-ci.org/aarongrisez/final-aarongrisez.svg?branch=master)](https://travis-ci.org/aarongrisez/final-aarongrisez)
-
 **Due date:** 2016/12/13
 
 ## Specification
