@@ -304,12 +304,9 @@ def test_find_maxima():
     df = pd.DataFrame({"t":t, "x":x})
     test = find_maxima('x', df)
     case = np.array([200., 12.])
-    print(test)
     assert all(test == case)
 
 def test_rossler():
     test = type(rossler(1))
     case = type(pd.DataFrame([1,3,1]))
     assert test == case
-
-
